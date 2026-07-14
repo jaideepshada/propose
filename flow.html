@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --paper: #101214;
+      --panel: #171a1d;
+      --panel-2: #202429;
+      --ink: #f2f0e8;
+      --muted: #9ea6a9;
+      --faint: #5d666b;
+      --line: rgba(242, 240, 232, 0.14);
+      --accent: #d7b56d;
+      --accent-soft: rgba(215, 181, 109, 0.16);
+      --danger: #e46f5c;
+      --danger-soft: rgba(228, 111, 92, 0.13);
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.055), transparent 42rem),
+        var(--paper);
+      background-size: 34px 34px, 34px 34px, auto, auto;
+      color: var(--ink);
+    }
+
+    body {
+      display: grid;
+      place-items: stretch;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent), white 24%);
+      outline-offset: 4px;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(1rem, 2.2vw, 2rem);
+      transition: background-color 180ms ease;
+    }
+
+    .topbar,
+    .bottombar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: clamp(0.78rem, 1.6vw, 0.95rem);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.72rem;
+      color: var(--ink);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 0.92rem;
+      height: 0.92rem;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 3px var(--paper);
+    }
+
+    .session-note {
+      text-align: right;
+    }
+
+    .focus {
+      width: min(100%, 76rem);
+      margin: 0 auto;
+      display: grid;
+      align-content: center;
+      gap: clamp(1.25rem, 3vw, 2.5rem);
+      padding: clamp(2rem, 5vh, 4.5rem) 0;
+    }
+
+    .task-shell {
+      position: relative;
+      display: grid;
+      gap: clamp(1rem, 2.4vw, 1.8rem);
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 2.5rem;
+    }
+
+    .track-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 2.15rem;
+      padding: 0.42rem 0.74rem;
+      border: 1px solid color-mix(in srgb, var(--accent), transparent 35%);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: color-mix(in srgb, var(--accent), white 30%);
+      font-size: clamp(0.76rem, 1.5vw, 0.88rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .track-dot {
+      width: 0.56rem;
+      height: 0.56rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .step-count {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .task-title {
+      margin: 0;
+      max-width: 18ch;
+      color: var(--ink);
+      font-size: clamp(2rem, 7vw, 5.7rem);
+      line-height: 0.94;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .timer-wrap {
+      display: grid;
+      gap: 0.7rem;
+      padding-top: clamp(0.4rem, 1.3vw, 1rem);
+    }
+
+    .timer {
+      color: var(--ink);
+      font-family: "SFMono-Regular", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+      font-size: clamp(5.4rem, 21vw, 15.5rem);
+      font-weight: 800;
+      line-height: 0.82;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0.04em 0 rgba(0, 0, 0, 0.24);
+      white-space: nowrap;
+    }
+
+    .timer.overtime {
+      color: var(--danger);
+    }
+
+    .timer-caption {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem 1rem;
+      color: var(--muted);
+      font-size: clamp(0.9rem, 2vw, 1.05rem);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.8rem;
+      padding: 0.24rem 0.62rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--ink);
+      font-weight: 750;
+    }
+
+    .status-pill.overtime {
+      border-color: rgba(228, 111, 92, 0.55);
+      background: var(--danger-soft);
+      color: #ffb3a7;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(10rem, 14rem) minmax(13rem, 18rem);
+      gap: 0.85rem;
+      align-items: center;
+    }
+
+    .button {
+      min-height: 3.65rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+      font-weight: 850;
+      letter-spacing: 0.01em;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent), white 12%);
+      background: var(--panel-2);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button.primary {
+      border-color: color-mix(in srgb, var(--accent), transparent 26%);
+      background: color-mix(in srgb, var(--accent), #171a1d 78%);
+      color: #fffaf0;
+    }
+
+    .button.next {
+      background: var(--ink);
+      color: #111315;
+      border-color: transparent;
+    }
+
+    .bottombar {
+      align-items: end;
+    }
+
+    .progress {
+      width: min(100%, 34rem);
+      height: 0.36rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.09);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width 180ms linear;
+    }
+
+    .reset-button {
+      min-height: 2.35rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius);
+      padding: 0.42rem 0.72rem;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .reset-button:hover {
+      color: var(--ink);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+
+    .complete {
+      width: min(100%, 64rem);
+      margin: 0 auto;
+      display: grid;
+      align-content: center;
+      gap: 1.3rem;
+      padding: clamp(3rem, 8vh, 7rem) 0;
+      min-height: 72vh;
+    }
+
+    .complete-kicker {
+      color: var(--accent);
+      font-weight: 850;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .complete h1 {
+      margin: 0;
+      font-size: clamp(3.4rem, 13vw, 10rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+    }
+
+    .complete p {
+      max-width: 42rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.6;
+    }
+
+    .complete-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      padding-top: 0.8rem;
+    }
+
+    .complete-actions .button {
+      min-width: 13rem;
+      padding: 0 1.2rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .advance-flash {
+      animation: settle 220ms ease-out;
+    }
+
+    @keyframes settle {
+      from {
+        opacity: 0.72;
+        transform: translateY(0.55rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 1rem;
+      }
+
+      .topbar,
+      .bottombar,
+      .meta-row {
+        align-items: flex-start;
+      }
+
+      .topbar,
+      .bottombar {
+        flex-direction: column;
+      }
+
+      .session-note {
+        text-align: left;
+      }
+
+      .meta-row {
+        flex-direction: column;
+      }
+
+      .task-title {
+        max-width: 11ch;
+      }
+
+      .timer {
+        font-size: clamp(4.6rem, 25vw, 8rem);
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <header class="topbar" aria-label="Session">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Flow</div>
+      <div class="session-note" id="sessionNote"></div>
+    </header>
+
+    <section class="focus" id="taskView" aria-live="polite">
+      <div class="task-shell" id="taskShell">
+        <div class="meta-row">
+          <div class="track-tag" id="trackTag"><span class="track-dot" aria-hidden="true"></span><span id="trackName"></span></div>
+          <div class="step-count" id="stepCount"></div>
+        </div>
+
+        <h1 class="task-title" id="taskTitle"></h1>
+
+        <div class="timer-wrap">
+          <div class="timer" id="timer" aria-label="Remaining time">00:00</div>
+          <div class="timer-caption">
+            <span class="status-pill" id="statusPill"></span>
+            <span id="durationNote"></span>
+          </div>
+        </div>
+
+        <div class="controls" aria-label="Timer controls">
+          <button class="button primary" type="button" id="startPauseButton">Start</button>
+          <button class="button next" type="button" id="nextButton">Mark Done → Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="complete hidden" id="completeView" aria-live="polite">
+      <div class="complete-kicker">Day complete</div>
+      <h1>Finish line.</h1>
+      <p>You moved through the full sequence. Reset deliberately when you are ready to start a new day.</p>
+      <div class="complete-actions">
+        <button class="button next" type="button" id="completeResetButton">Reset Day</button>
+      </div>
+    </section>
+
+    <footer class="bottombar">
+      <div class="progress" aria-label="Day progress"><div class="progress-fill" id="progressFill"></div></div>
+      <button class="reset-button" type="button" id="resetButton">Reset Day</button>
+    </footer>
+  </main>
+
+  <script>
+    const TASKS = [
+      { label: "Morning routine", track: "Rest", minutes: 60 },
+      { label: "DSA — Block 1", track: "DSA", minutes: 105 },
+      { label: "Break", track: "Rest", minutes: 15 },
+      { label: "DSA — Block 2", track: "DSA", minutes: 75 },
+      { label: "Break", track: "Rest", minutes: 15 },
+      { label: "Backend — Block 1", track: "Backend", minutes: 135 },
+      { label: "Lunch", track: "Rest", minutes: 45 },
+      { label: "Optional power nap", track: "Rest", minutes: 20 },
+      { label: "Backend — Block 2", track: "Backend", minutes: 120 },
+      { label: "Break", track: "Rest", minutes: 15 },
+      { label: "Backend — Block 3", track: "Backend", minutes: 105 },
+      { label: "Break", track: "Rest", minutes: 15 },
+      { label: "Security", track: "Security", minutes: 60 },
+      { label: "Dinner", track: "Rest", minutes: 45 },
+      { label: "Wind-down (no screens)", track: "Rest", minutes: 60 }
+    ];
+
+    const TRACK_STYLES = {
+      DSA: { accent: "#78a8ff", soft: "rgba(120, 168, 255, 0.15)" },
+      Backend: { accent: "#f0b35a", soft: "rgba(240, 179, 90, 0.16)" },
+      Security: { accent: "#d977a6", soft: "rgba(217, 119, 166, 0.15)" },
+      Rest: { accent: "#83c9b1", soft: "rgba(131, 201, 177, 0.14)" }
+    };
+
+    const STORAGE_KEY = "flow.timer.state.v1";
+    const firstTaskSeconds = TASKS[0].minutes * 60;
+    let state = loadState();
+    let ticker = null;
+
+    const app = document.getElementById("app");
+    const taskView = document.getElementById("taskView");
+    const completeView = document.getElementById("completeView");
+    const taskShell = document.getElementById("taskShell");
+    const sessionNote = document.getElementById("sessionNote");
+    const trackName = document.getElementById("trackName");
+    const stepCount = document.getElementById("stepCount");
+    const taskTitle = document.getElementById("taskTitle");
+    const timer = document.getElementById("timer");
+    const statusPill = document.getElementById("statusPill");
+    const durationNote = document.getElementById("durationNote");
+    const startPauseButton = document.getElementById("startPauseButton");
+    const nextButton = document.getElementById("nextButton");
+    const resetButton = document.getElementById("resetButton");
+    const completeResetButton = document.getElementById("completeResetButton");
+    const progressFill = document.getElementById("progressFill");
+
+    startPauseButton.addEventListener("click", toggleRunning);
+    nextButton.addEventListener("click", advanceTask);
+    resetButton.addEventListener("click", confirmResetDay);
+    completeResetButton.addEventListener("click", confirmResetDay);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target && ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(event.target.tagName)) {
+        return;
+      }
+
+      if (event.code === "Space" && !state.complete) {
+        event.preventDefault();
+        toggleRunning();
+      }
+
+      if (event.key === "Enter" && !state.complete) {
+        event.preventDefault();
+        advanceTask();
+      }
+    });
+
+    window.addEventListener("beforeunload", persistState);
+
+    render();
+    syncTicker();
+
+    function createFreshState() {
+      return {
+        currentIndex: 0,
+        remainingSeconds: firstTaskSeconds,
+        running: false,
+        dayStartTimestamp: Date.now(),
+        complete: false
+      };
+    }
+
+    function loadState() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!stored || typeof stored !== "object") {
+          return createFreshState();
+        }
+
+        const currentIndex = Number.isInteger(stored.currentIndex) ? stored.currentIndex : 0;
+        if (stored.complete === true || currentIndex >= TASKS.length) {
+          return {
+            currentIndex: TASKS.length,
+            remainingSeconds: 0,
+            running: false,
+            dayStartTimestamp: Number(stored.dayStartTimestamp) || Date.now(),
+            complete: true
+          };
+        }
+
+        if (currentIndex < 0 || currentIndex >= TASKS.length) {
+          return createFreshState();
+        }
+
+        return {
+          currentIndex,
+          remainingSeconds: Number.isFinite(stored.remainingSeconds)
+            ? Math.trunc(stored.remainingSeconds)
+            : TASKS[currentIndex].minutes * 60,
+          running: stored.running === true,
+          dayStartTimestamp: Number(stored.dayStartTimestamp) || Date.now(),
+          complete: false
+        };
+      } catch (error) {
+        return createFreshState();
+      }
+    }
+
+    function persistState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function toggleRunning() {
+      state.running = !state.running;
+      persistState();
+      render();
+      syncTicker();
+    }
+
+    function advanceTask() {
+      state.running = false;
+      state.currentIndex += 1;
+
+      if (state.currentIndex >= TASKS.length) {
+        state.complete = true;
+        state.remainingSeconds = 0;
+      } else {
+        state.complete = false;
+        state.remainingSeconds = TASKS[state.currentIndex].minutes * 60;
+      }
+
+      persistState();
+      taskShell.classList.remove("advance-flash");
+      void taskShell.offsetWidth;
+      taskShell.classList.add("advance-flash");
+      render();
+      syncTicker();
+    }
+
+    function confirmResetDay() {
+      const confirmed = window.confirm("Reset Flow and start again from task 1?");
+      if (!confirmed) {
+        return;
+      }
+
+      localStorage.removeItem(STORAGE_KEY);
+      state = createFreshState();
+      render();
+      syncTicker();
+    }
+
+    function syncTicker() {
+      if (ticker) {
+        clearInterval(ticker);
+        ticker = null;
+      }
+
+      if (!state.running || state.complete) {
+        return;
+      }
+
+      ticker = setInterval(() => {
+        state.remainingSeconds -= 1;
+        persistState();
+        renderTimerOnly();
+      }, 1000);
+    }
+
+    function render() {
+      sessionNote.textContent = `Session started at ${formatClockTime(state.dayStartTimestamp)}`;
+
+      if (state.complete) {
+        app.style.setProperty("--accent", "#d7b56d");
+        app.style.setProperty("--accent-soft", "rgba(215, 181, 109, 0.16)");
+        taskView.classList.add("hidden");
+        completeView.classList.remove("hidden");
+        progressFill.style.width = "100%";
+        return;
+      }
+
+      const task = TASKS[state.currentIndex];
+      const trackStyle = TRACK_STYLES[task.track] || TRACK_STYLES.Rest;
+      app.style.setProperty("--accent", trackStyle.accent);
+      app.style.setProperty("--accent-soft", trackStyle.soft);
+
+      taskView.classList.remove("hidden");
+      completeView.classList.add("hidden");
+      trackName.textContent = task.track;
+      stepCount.textContent = `${state.currentIndex + 1} / ${TASKS.length}`;
+      taskTitle.textContent = task.label;
+      durationNote.textContent = `${task.minutes} minute block`;
+      startPauseButton.textContent = state.running ? "Pause" : "Start";
+      startPauseButton.setAttribute("aria-pressed", String(state.running));
+      progressFill.style.width = `${Math.round((state.currentIndex / TASKS.length) * 100)}%`;
+      renderTimerOnly();
+    }
+
+    function renderTimerOnly() {
+      const overtime = state.remainingSeconds < 0;
+      timer.textContent = formatDuration(state.remainingSeconds);
+      timer.classList.toggle("overtime", overtime);
+      statusPill.classList.toggle("overtime", overtime);
+      statusPill.textContent = overtime ? "Overtime" : state.running ? "Running" : "Paused";
+      timer.setAttribute("aria-label", overtime ? "Overtime" : "Remaining time");
+    }
+
+    function formatDuration(totalSeconds) {
+      const sign = totalSeconds < 0 ? "-" : "";
+      const absoluteSeconds = Math.abs(totalSeconds);
+      const minutes = Math.floor(absoluteSeconds / 60);
+      const seconds = absoluteSeconds % 60;
+      return `${sign}${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function formatClockTime(timestamp) {
+      return new Intl.DateTimeFormat(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date(timestamp));
+    }
+  </script>
+</body>
+</html>
