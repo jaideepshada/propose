@@ -57,7 +57,7 @@ export const loves = {
     this.completeSoon(3200);
   },
   eat() {
-    this.art.innerHTML = '<i></i>';
+    this.art.innerHTML = '<div class="pizza-slices" data-bites="0"><i></i><i></i><i></i><i></i></div>';
     this.hint.textContent = this.ctx.content.door.hint;
     this.bites = 0;
     this.scene.classList.add('eat-ready');
@@ -88,7 +88,7 @@ export const loves = {
     if (!this.interactionComplete) {
       if (this.index === 4) {
         this.bites += 1;
-        this.art.style.setProperty('--bite', this.bites);
+        this.art.querySelector('.pizza-slices').dataset.bites = String(this.bites);
         if (this.bites >= 4) this.revealInteraction();
       } else this.revealInteraction();
       return;

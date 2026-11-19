@@ -57,7 +57,14 @@ button { font: inherit; }
 .walk-ready .love-copy { animation: walking 2500ms ease-in-out infinite; }
 @keyframes walking { 0%,100% { transform: translate(0,0); } 25% { transform: translate(10px,-5px); } 50% { transform: translate(18px,0); } 75% { transform: translate(10px,4px); } }
 .eat-ready .love-art { display: grid; place-items: center; }
-.eat-ready .love-art i { --r: calc(var(--bite, 0) * 12px); width: 11rem; height: 11rem; border: 2px solid var(--candle); border-radius: 50%; background: radial-gradient(circle at 86% 24%, var(--ink) 0 var(--r), transparent calc(var(--r) + 1px)), radial-gradient(circle at 82% 48%, var(--ink) 0 calc(var(--r) * .8), transparent calc(var(--r) * .8 + 1px)); transition: background 550ms ease; }
+.pizza-slices { position: relative; width: 15rem; height: 12rem; }
+.pizza-slices i { position: absolute; width: 6.5rem; height: 7.6rem; border: 2px solid var(--candle); border-radius: 38% 38% 12% 12%; background: radial-gradient(circle at 43% 47%, var(--oxblood) 0 .42rem, transparent .45rem), radial-gradient(circle at 64% 66%, var(--ember) 0 .38rem, transparent .41rem), linear-gradient(110deg, #d5894f, #f0bc68 54%, #a84a38); clip-path: polygon(8% 0, 92% 0, 51% 100%); transform-origin: 50% 7%; transition: opacity 600ms ease, transform 800ms cubic-bezier(.2,.8,.2,1); }
+.pizza-slices i::before { content: ''; position: absolute; left: 8%; top: -7%; width: 84%; height: 18%; border: 2px solid var(--candle); border-radius: 50%; background: #d58c55; }
+.pizza-slices i:nth-child(1) { left: 1rem; top: .2rem; transform: rotate(-38deg); }
+.pizza-slices i:nth-child(2) { right: 1rem; top: .2rem; transform: rotate(38deg); }
+.pizza-slices i:nth-child(3) { left: 1.6rem; bottom: -.4rem; transform: rotate(-142deg); }
+.pizza-slices i:nth-child(4) { right: 1.6rem; bottom: -.4rem; transform: rotate(142deg); }
+.pizza-slices[data-bites='1'] i:nth-child(1), .pizza-slices[data-bites='2'] i:nth-child(-n+2), .pizza-slices[data-bites='3'] i:nth-child(-n+3), .pizza-slices[data-bites='4'] i { opacity: 0; transform: scale(.45) translateY(2rem) rotate(25deg); }
 .hair-ready .love-art { display: grid; place-items: center; }
 .hair-ready svg { width: 100%; }
 .hair-ready path { fill: none; stroke: var(--candle); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 700; stroke-dashoffset: 700; }
